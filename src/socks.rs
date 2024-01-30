@@ -84,7 +84,7 @@ where
     }
 
     pub async fn handshake(&mut self) -> Result<TcpStream> {
-        match socksv5::read_version(&mut self.reader).await {
+        match socksv5::read_version(&mut self.reader).await { //读取版本
             Err(err) => Err(self.handle_version_error(err).await),
             Ok(version) => self.handle_handshake_with_version(version).await,
         }
@@ -122,11 +122,11 @@ where
     async fn handle_handshake_with_version(&mut self, version: SocksVersion) -> Result<TcpStream> {
         match version {
             socksv5::SocksVersion::V5 => {
-                let handshake = socksv5::v5::read_handshake_skip_version(&mut self.reader).await?;
+                let handshake = socksv5::v5::read_handshake_skip_version(&mut self.reader).await?; //读取handleshake信息
 
-                self.handle_auth(&handshake).await?;
+                self.handle_auth(&handshake).await?; //写入认证信息
 
-                let host = self.handle_request_v5().await?;
+                let host = self.handle_request_v5().await?; //得到目标地址
 
                 let local_addr = self
                     .dispatcher
@@ -162,13 +162,13 @@ where
 
     #[instrument]
     async fn handle_request_v5(&mut self) -> Result<SocketAddr> {
-        let request = socksv5::v5::read_request(&mut self.reader).await?;
+        let request = socksv5::v5::read_request(&mut self.reader).await?; //获取request
 
         match request.command {
-            socksv5::v5::SocksV5Command::Connect => {
+            socksv5::v5::SocksV5Command::Connect => { //只支持Connect的命令，构建IP或者domain
                 let host = match request.host {
                     socksv5::v5::SocksV5Host::Ipv4(ip) => {
-                        SocketAddr::new(IpAddr::V4(ip.into()), request.port)
+                        SocketAddr::new(IpAddr::V4(ip.into()), request.port) 
                     }
                     socksv5::v5::SocksV5Host::Ipv6(ip) => {
                         SocketAddr::new(IpAddr::V6(ip.into()), request.port)
@@ -202,7 +202,7 @@ where
                     socksv5::v5::SocksV5Host::Ipv4([0, 0, 0, 0]),
                     0,
                 )
-                .await?;
+                .await?; 
                 Err(unsupported_v5_command_error(&cmd))
             }
         }
@@ -216,7 +216,7 @@ where
     ) -> Result<TcpStream> {
         let server_socket = try_bind_socket(local_addr)?;
 
-        let server_stream = server_socket.connect(address).await;
+        let server_stream = server_socket.connect(address).await; //获得TCPSteam
 
         match server_stream {
             Ok(server_stream) => {
@@ -226,7 +226,7 @@ where
                     socksv5::v5::SocksV5Host::Ipv4([0, 0, 0, 0]),
                     0,
                 )
-                .await?;
+                .await?; //告诉客户端建立连接成功
                 Ok(server_stream)
             }
             Err(err) => {

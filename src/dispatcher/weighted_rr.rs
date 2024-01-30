@@ -85,13 +85,13 @@ impl WeightedRoundRobinDispatcherInner {
     fn dispatch(&mut self, remote_addr: &SocketAddr) -> Result<IpAddr> {
         let state = self.select_state(remote_addr)?;
 
-        let address = &state.addresses[state.address_idx];
+        let address = &state.addresses[state.address_idx];//获取对应的加权地址
         let ip = address.ip;
 
         state.count += 1;
-        if state.count == usize::from(address.weight) {
+        if state.count == usize::from(address.weight) { //如果state.count和权重相同
             state.count = 0;
-            state.address_idx = (state.address_idx + 1) % state.addresses.len();
+            state.address_idx = (state.address_idx + 1) % state.addresses.len(); // 更新address_idx
         }
 
         Ok(ip)
@@ -101,7 +101,7 @@ impl WeightedRoundRobinDispatcherInner {
         let state = match remote_addr.ip() {
             IpAddr::V4(_) => &mut self.ipv4,
             IpAddr::V6(_) => &mut self.ipv6,
-        };
+        }; //确定地址性质
 
         if state.addresses.is_empty() {
             return Err(eyre::eyre!(

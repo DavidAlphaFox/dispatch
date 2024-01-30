@@ -22,11 +22,11 @@ where
     D: Dispatch + Debug,
 {
     let mut server_socket = {
-        let (client_reader, client_writer) = socket.split();
+        let (client_reader, client_writer) = socket.split();//对socket进行分离
 
         let mut handshake = SocksHandshake::new(client_reader, client_writer, dispatcher);
 
-        match handshake.handshake().await {
+        match handshake.handshake().await { //进行握手
             Err(err) => {
                 return Err(err.wrap_err(eyre::eyre!(
                     "An error occurred during the proxy handshake procedure"
@@ -72,7 +72,7 @@ where
     R: AsyncRead + Unpin,
     W: AsyncWrite + Unpin,
 {
-    if let Err(err) = tokio::io::copy(&mut reader, &mut writer).await {
+    if let Err(err) = tokio::io::copy(&mut reader, &mut writer).await { //建立管道，不断的复制
         match err.raw_os_error() {
             // Connection reset by peer (os error 54)
             // TODO: we currently don't have a way to propagate this error in either direction, so instead we act as if
